@@ -14,8 +14,8 @@ var defaultRemoteURL string = "http://0.0.0.0:3000/scripts"
 const idempotencyKeyHeader = "Idempotency-Key"
 
 type requestPayload struct {
-	URL    string
-	Script string
+	URL     string `json:"url"`
+	Content string `json:"content"`
 
 	idempotencyKey string
 	uploadToken    string
@@ -56,9 +56,14 @@ func uploadResults(payload requestPayload) error {
 		return err
 	}
 
-	_, err = io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("upload failed: %s", string(body))
 	}
 
 	return nil
@@ -73,7 +78,7 @@ func Run(args []string) error {
 	// upload payload
 	payload := requestPayload{
 		URL:            "url",
-		Script:         string(out),
+		Content:        string(out),
 		idempotencyKey: "idempotencyKey",
 		uploadToken:    "uploadToken",
 	}
