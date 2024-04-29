@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os/exec"
 )
 
@@ -69,15 +70,36 @@ func uploadResults(payload requestPayload) error {
 	return nil
 }
 
+// get the last URL in the arguments list
+// only https URLs are considered for security reasons
+func findURL(args []string) (string, bool) {
+	for i := len(args) - 1; i >= 0; i-- {
+		u, err := url.ParseRequestURI(args[i])
+		if err != nil {
+			continue
+		}
+		if u.Scheme == "https" || u.Hostname() == "localhost" {
+			return args[i], true
+		}
+	}
+
+	return "", false
+}
+
 func Run(args []string) error {
 	out, err := runCurl(args)
 	if err != nil {
 		return err
 	}
 
+	url, foundURL := findURL(args)
+	if !foundURL {
+		return nil
+	}
+
 	// upload payload
 	payload := requestPayload{
-		URL:            "url",
+		URL:            url,
 		Content:        string(out),
 		idempotencyKey: "idempotencyKey",
 		uploadToken:    "uploadToken",
