@@ -10,7 +10,10 @@ import (
 func main() {
 	args := os.Args[1:]
 
-	err := c2b.Run(args)
+	err := c2b.Run(
+		args,
+		os.Getenv,
+	)
 	if err != nil {
 		fmt.Println("error", err)
 	}

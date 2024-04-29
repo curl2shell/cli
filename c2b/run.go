@@ -10,7 +10,9 @@ import (
 	"os/exec"
 )
 
-var defaultRemoteURL string = "http://0.0.0.0:3000/scripts"
+type EnvGetter func(string) string
+
+var defaultRemoteURL string = "https://curl2shell.com"
 
 const idempotencyKeyHeader = "Idempotency-Key"
 
@@ -33,15 +35,15 @@ func runCurl(args []string) ([]byte, error) {
 	return out, nil
 }
 
-func uploadResults(payload requestPayload) error {
+func uploadResults(payload requestPayload, getEnv EnvGetter) error {
 	jsonValue, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	url := defaultRemoteURL
+	uploadURL := getUploadURL(getEnv) + "/scripts"
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
+	req, err := http.NewRequest("POST", uploadURL, bytes.NewBuffer(jsonValue))
 	if err != nil {
 		return fmt.Errorf("unable to create upload request: %w", err)
 	}
@@ -70,6 +72,15 @@ func uploadResults(payload requestPayload) error {
 	return nil
 }
 
+func getUploadURL(getEnv EnvGetter) string {
+	uploadURL := getEnv("CURL2SHELL_UPLOAD_URL")
+	if uploadURL == "" {
+		return defaultRemoteURL
+	}
+
+	return uploadURL
+}
+
 // get the last URL in the arguments list
 // only https URLs are considered for security reasons
 func findURL(args []string) (string, bool) {
@@ -86,7 +97,7 @@ func findURL(args []string) (string, bool) {
 	return "", false
 }
 
-func Run(args []string) error {
+func Run(args []string, getEnv EnvGetter) error {
 	out, err := runCurl(args)
 	if err != nil {
 		return err
@@ -105,7 +116,7 @@ func Run(args []string) error {
 		uploadToken:    "uploadToken",
 	}
 
-	err = uploadResults(payload)
+	err = uploadResults(payload, getEnv)
 	if err != nil {
 		return err
 	}
