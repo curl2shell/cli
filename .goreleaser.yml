@@ -1,0 +1,53 @@
+project_name: curl2shell
+
+builds:
+  - <<: &build_defaults
+      binary: curl2shell
+      main: .
+      ldflags:
+        - -X main.Version={{.Version}}
+        - -X main.Date={{.Date}}
+        - -X main.Commit={{.ShortCommit}}
+        - -X main.RemoteURL=https://curl2shell.com
+      id: macos
+      goos: [darwin]
+      goarch: [amd64, arm64]
+      env:
+        - CGO_ENABLED=0
+
+  - <<: *build_defaults
+    id: linux
+    goos: [linux]
+    goarch: [386, amd64, arm64]
+
+  - <<: *build_defaults
+    id: windows
+    goos: [windows]
+    goarch: [386, amd64]
+
+archives:
+  - format: binary
+    name_template: >-
+      curl2shell_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end -}}
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+release:
+  prerelease: auto
+  draft: true
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

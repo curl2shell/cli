@@ -1,0 +1,36 @@
+on:
+  push:
+    branches: ["*"]
+    tags: ["*"]
+  pull_request:
+    branches: ["*"]
+
+name: test
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+
+      - name: Download dependencies
+        run: |
+          go install github.com/jstemmer/go-junit-report/v2@latest
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: --snapshot --skip-publish --rm-dist
+
+      - name: Test
+        run: go test ./...
