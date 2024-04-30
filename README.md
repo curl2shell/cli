@@ -13,8 +13,8 @@ TODO
 ### Example usage
 
 ```diff
-curl -fsSL https://curl2shell.com/install.sh
-curl2shell -fsSL https://curl2shell.com/install.sh
+-curl -fsSL https://curl2shell.com/install.sh
++curl2shell -fsSL https://curl2shell.com/install.sh
 ```
 
 #### Before
