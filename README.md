@@ -8,7 +8,11 @@ The curl2shell CLI is drop in replacement for `curl` that wraps `curl`. curl2she
 
 ### Install
 
-TODO
+`curl -fsSL https://raw.githubusercontent.com/curl2shell/cli/main/install.sh | sh`
+
+OR
+
+`curl2shell -fsSL https://raw.githubusercontent.com/curl2shell/cli/main/install.sh | sh`
 
 ### Example usage
 
